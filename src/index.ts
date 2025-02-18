@@ -1,12 +1,13 @@
-import { Game, Types } from 'phaser';
-import { LoadingScene } from './scenes';
+import Phaser, { Game, Types } from 'phaser';
+import { Level1, LoadingScene } from './scenes';
+
 const gameConfig: Types.Core.GameConfig = {
   title: 'Phaser game tutorial',
   type: Phaser.WEBGL,
   parent: 'game',
   backgroundColor: '#351f1b',
   scale: {
-    mode: Phaser.Scale.ScaleModes.NONE,
+    mode: Phaser.Scale.NONE,
     width: window.innerWidth,
     height: window.innerHeight,
   },
@@ -30,8 +31,9 @@ const gameConfig: Types.Core.GameConfig = {
   audio: {
     disableWebAudio: false,
   },
-  scene: [LoadingScene],
+  scene: [LoadingScene, Level1],
 };
+
 window.sizeChanged = () => {
   if (window.game.isBooted) {
     setTimeout(() => {
@@ -46,8 +48,3 @@ window.sizeChanged = () => {
 window.onresize = () => window.sizeChanged();
 
 window.game = new Game(gameConfig);
-
-interface Window {
-  sizeChanged: () => void;
-  game: Phaser.Game;
-}

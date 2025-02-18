@@ -19,6 +19,10 @@ export default [
         },
       },
     },
+    environment: {
+      browser: true,
+      es2021: true,
+    },
     plugins: {
       '@typescript-eslint': typescriptPlugin,
       prettier: prettierPlugin,
