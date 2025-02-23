@@ -36,7 +36,7 @@ export class Actor extends Physics.Arcade.Sprite {
       }
     }
   }
-  protected getBody(): Physics.Arcade.Body {
-    return this.body as Physics.Arcade.Body;
+  protected getBody(): Phaser.Physics.Arcade.Body {
+    return this.body as Phaser.Physics.Arcade.Body;
   }
 }
