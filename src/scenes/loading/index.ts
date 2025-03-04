@@ -10,9 +10,23 @@ export class LoadingScene extends Scene {
     // key: 'king'
     // path from baseURL to file: 'sprites/king.png'
     this.load.image('king', 'sprites/king.png');
+
+    this.load.atlas('a-king', 'spritesheets/a-king.png', 'spritesheets/a-king_atlas.json');
+    const image = new Image();
+    image.src = 'assets/tilemaps/tiles/dungeon-16-16.png';
+    image.onload = () => console.log('✅ Image loaded:', image.src);
+    image.onerror = () => console.error('❌ Failed to load:', image.src);
+
+    this.load.image({
+      key: 'tiles',
+      url: 'tilemaps/tiles/dungeon-16-16.png',
+    });
+
+    this.load.tilemapTiledJSON('dungeon', 'tilemaps/json/dungeon.tmj');
   }
   create(): void {
     console.log('Loading scene was created');
     this.scene.start('level-1-scene');
+    console.log('loading/index.ts (create)', this.textures.exists('tiles'));
   }
 }
