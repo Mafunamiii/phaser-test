@@ -1,9 +1,11 @@
 import { GameObjects, Scene, Tilemaps } from 'phaser';
 import { Player } from '../../classes/player';
+import { gameObjectsToObjectPoints } from '../../helpers/gameobject-to-object-point';
 
 export class Level1 extends Scene {
   private king!: GameObjects.Sprite;
   private player!: Player;
+  private chests!: Phaser.GameObjects.Sprite[];
 
   private map!: Tilemaps.Tilemap;
   private tileset!: Tilemaps.Tileset;
@@ -17,42 +19,82 @@ export class Level1 extends Scene {
     console.log('level 1 (create): level-1');
     this.initMap();
     this.player = new Player(this, 100, 100);
+
+    this.physics.add.collider(this.player, this.wallsLayer);
+    this.setupChestCollisions();
+    this.initCamera();
   }
   update(): void {
     this.player.update();
   }
   private initMap(): void {
-    // 1️⃣ Create the Tilemap FIRST
-    this.map = this.make.tilemap({ key: 'dungeon', tileWidth: 16, tileHeight: 16 });
-    console.log('Tilemap object:', this.map);
+    // Check if tilemap exists before creating
+    if (!this.cache.tilemap.exists('dungeon')) {
+      throw new Error("Tilemap 'dungeon' was not preloaded correctly");
+    }
 
-    // 2️⃣ Add Tileset Image
+    this.map = this.make.tilemap({ key: 'dungeon', tileWidth: 16, tileHeight: 16 });
+
+    // More detailed logging
+    console.log('Tilemap data:', this.map.tilesets);
+
+    // Safer tileset addition
+    const tilesetName = this.map.tilesets.find((t) => t.name === 'dungeon');
+    if (!tilesetName) {
+      throw new Error(
+        `No tileset found with name 'dungeon'. Available tilesets: ${this.map.tilesets.map((t) => t.name)}`,
+      );
+    }
+
     this.tileset = this.map.addTilesetImage('dungeon', 'tiles')!;
     if (!this.tileset) {
-      console.log('Tileset not found');
-      throw new Error("Tileset 'dungeon' could not be loaded. Check if it's correctly preloaded.");
+      throw new Error('Failed to add tileset. Check tileset and texture keys.');
     }
-    console.log('Tileset object:', this.tileset);
-    console.log(
-      'level 1 (initmap)',
-      this.map.tilesets.map((t) => t.name),
-    );
-    console.log('Tilemap object:', this.map);
-    console.log('Tilemap key:', this.cache.tilemap.exists('dungeon'));
-    console.log(
-      'Tilemap layers:',
-      this.map.layers.map((l) => l.name),
-    );
-    console.log('Tilemap size:', this.map.widthInPixels, 'x', this.map.heightInPixels);
 
-    console.log(
-      'Map layers:',
-      this.map.layers.map((l) => l.name),
-    );
-    console.log('Texture exists:', this.textures.exists('tiles'));
+    // Safer layer creation
+    const groundLayer = this.map.getLayer('Ground');
+    const wallsLayer = this.map.getLayer('Walls');
+
+    if (!groundLayer || !wallsLayer) {
+      throw new Error(`Layer not found. Available layers: ${this.map.layers.map((l) => l.name)}`);
+    }
 
     this.groundLayer = this.map.createLayer('Ground', this.tileset, 0, 0)!;
     this.wallsLayer = this.map.createLayer('Walls', this.tileset, 0, 0)!;
-    this.physics.world.setBounds(0, 0, this.wallsLayer.width, this.wallsLayer.height);
+    this.wallsLayer.setCollisionByProperty({ collides: true });
+
+    this.initChests();
+  }
+  private initChests(): void {
+    const chestPoints = gameObjectsToObjectPoints(
+      this.map.filterObjects('Chests', (obj) => obj.name === 'ChestPoint')!,
+    );
+    console.log('Chests:', chestPoints);
+
+    this.chests = chestPoints.map((chestPoint) =>
+      this.physics.add.sprite(chestPoint.x, chestPoint.y, 'tiles_spr', 595).setScale(1.5),
+    );
+  }
+  private setupChestCollisions(): void {
+    this.chests.forEach((chest) => {
+      this.physics.add.overlap(this.player, chest, (obj1, obj2) => {
+        obj2.destroy();
+        this.cameras.main.flash();
+      });
+    });
+  }
+
+  private showDebugWalls(): void {
+    const debugGraphics = this.add.graphics().setAlpha(0.7);
+    this.wallsLayer.renderDebug(debugGraphics, {
+      tileColor: null,
+      collidingTileColor: new Phaser.Display.Color(243, 234, 48, 255),
+    });
+  }
+
+  private initCamera(): void {
+    this.cameras.main.setSize(this.game.scale.width, this.game.scale.height);
+    this.cameras.main.startFollow(this.player, true, 0.09, 0.09);
+    this.cameras.main.setZoom(2);
   }
 }

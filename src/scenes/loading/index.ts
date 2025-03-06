@@ -23,10 +23,16 @@ export class LoadingScene extends Scene {
     });
 
     this.load.tilemapTiledJSON('dungeon', 'tilemaps/json/dungeon.tmj');
+
+    this.load.spritesheet('tiles_spr', 'tilemaps/tiles/dungeon-16-16.png', {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
   }
   create(): void {
     console.log('Loading scene was created');
     this.scene.start('level-1-scene');
     console.log('loading/index.ts (create)', this.textures.exists('tiles'));
+    this.scene.start('ui-scene');
   }
 }
